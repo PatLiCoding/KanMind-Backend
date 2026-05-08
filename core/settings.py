@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'auth_app.apps.AuthAppConfig',
-    'bords_app.apps.BordsAppConfig',
+    'boards_app.apps.BoardsAppConfig',
     'tasks_app.apps.TasksAppConfig'
 ]
 
