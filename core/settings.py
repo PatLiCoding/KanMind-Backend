@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'auth_app.apps.AuthAppConfig',
     'bords_app.apps.BordsAppConfig',
     'tasks_app.apps.TasksAppConfig'
@@ -116,6 +117,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'auth_app.User'
 
 
 # Internationalization
