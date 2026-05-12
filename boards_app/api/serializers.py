@@ -63,3 +63,27 @@ class BoardSerializer(serializers.ModelSerializer):
         if members is not None:
             instance.members.set(members)
         return instance
+
+
+class BoardDetailSerializer(serializers.ModelSerializer):
+    members = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Board
+        fields = [
+            'id',
+            'title',
+            'owner_id',
+            'members',
+            'tasks'
+        ]
+
+    def get_members(self, obj):
+        return [
+            {
+                "id": user.id,
+                "email": user.email,
+                "fullname": user.fullname,
+            }
+            for user in obj.members.all()
+        ]

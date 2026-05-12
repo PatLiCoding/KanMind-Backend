@@ -5,11 +5,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from boards_app.models import Board
-from .serializers import BoardSerializer
+from .serializers import BoardSerializer, BoardDetailSerializer
 
 
 class BoardsView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         boards = Board.objects.all()
@@ -28,6 +28,15 @@ class BoardsView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class BoardDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, board_id):
+        board = get_object_or_404(Board, id=board_id)
+        serializer = BoardDetailSerializer(board)
+        return Response(serializer.data)
 
 
 class EmailCheckView(APIView):
