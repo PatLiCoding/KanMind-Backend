@@ -9,7 +9,7 @@ class Board(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True,
         related_name='owned_boards')
-    member = models.ManyToManyField(
+    members = models.ManyToManyField(
         User, related_name='boards')
 
     def __str__(self):

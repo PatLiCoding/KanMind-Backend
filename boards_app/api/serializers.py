@@ -4,11 +4,11 @@ from rest_framework import serializers
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    member = serializers.ListField(
-        child=serializers.EmailField(),
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=True,
         write_only=True,
-        required=False
-    )
+        required=False)
     owner_id = serializers.ReadOnlyField(
         source='owner.id'
     )
@@ -22,16 +22,16 @@ class BoardSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'title',
-            'owner_id',
-            'member',
+            'members',
             'member_count',
             'ticket_count',
             'tasks_to_do_count',
-            'tasks_high_prio_count'
+            'tasks_high_prio_count',
+            'owner_id',
         ]
 
     def get_member_count(self, obj):
-        return obj.member.count()
+        return obj.members.count()
 
     def get_ticket_count(self, obj):
         return obj.tasks.count()
@@ -42,21 +42,24 @@ class BoardSerializer(serializers.ModelSerializer):
     def get_tasks_high_prio_count(self, obj):
         return obj.tasks.filter(priority='high').count()
 
-    def validate_members(self, value):
-        users = []
-        for email in value:
-            try:
-                user = User.objects.get(email=email)
-                users.append(user)
-            except User.DoesNotExist:
-                raise serializers.ValidationError(
-                    f"User mit Email {email} existiert nicht."
-                )
+    def validate_member(self, value):
+        users = User.objects.filter(email__in=value)
+        if len(users) != len(value):
+            existing_emails = users.values_list('email', flat=True)
+            missing = set(value) - set(existing_emails)
+            raise serializers.ValidationError(
+                f"User with email '{list(missing)}' does not exist.")
         return users
 
     def create(self, validated_data):
-        member = validated_data.pop('members', [])
+        members = validated_data.pop('members', [])
         board = Board.objects.create(**validated_data)
-        if member:
-            board.member.set(member)
+        board.members.set(members)
         return board
+
+    def update(self, instance, validated_data):
+        members = validated_data.pop('members', None)
+        instance = super().update(instance, validated_data)
+        if members is not None:
+            instance.members.set(members)
+        return instance
