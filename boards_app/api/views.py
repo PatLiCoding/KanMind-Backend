@@ -3,6 +3,7 @@ from auth_app.models import User
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 from boards_app.models import Board
 from .serializers import BoardSerializer
 
@@ -35,21 +36,10 @@ class EmailCheckView(APIView):
     def get(self, request):
         email = request.query_params.get("email")
         if not email:
-            return Response(
-                {"error": "Email is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            user = User.objects.get(email=email)
-            data = {
-                "id": user.id,
-                "email": user.email,
-                "fullname": user.fullname
-            }
-            return Response(data, status=status.HTTP_200_OK)
-
-        except User.DoesNotExist:
-            return Response(
-                {"error": "Email not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Email is required"}, status=400)
+        user = get_object_or_404(User, email=email)
+        return Response({
+            "id": user.id,
+            "email": user.email,
+            "fullname": user.fullname
+        })
