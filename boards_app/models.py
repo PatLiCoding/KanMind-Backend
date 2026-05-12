@@ -7,13 +7,10 @@ from auth_app.models import User
 class Board(models.Model):
     title = models.CharField(max_length=100)
     owner = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, related_name='owner')
+        User, on_delete=models.SET_NULL, null=True,
+        related_name='owned_boards')
     member = models.ManyToManyField(
-        User, related_name='members')
-    member_count = models.IntegerField(default=0)
-    ticket_count = models.IntegerField(default=0)
-    tasks_to_do_count = models.IntegerField(default=0)
-    tasks_high_prio_count = models.IntegerField(default=0)
+        User, related_name='boards')
 
     def __str__(self):
         return f"{self.title}"
