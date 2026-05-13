@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from auth_app.models import User
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -14,7 +15,10 @@ class BoardsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        boards = Board.objects.all()
+        boards = Board.objects.filter(
+            Q(owner=request.user) |
+            Q(members=request.user)
+        ).distinct()
         serializer = BoardSerializer(boards, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -45,13 +49,16 @@ class BoardDetailView(APIView):
         board = get_object_or_404(Board, id=board_id)
         self.check_object_permissions(request, board)
         serializer = BoardMemberUpdateSerializer(
-            board,
-            data=request.data,
-            partial=True
-        )
+            board, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+    def delete(self, request, board_id):
+        board = get_object_or_404(Board, id=board_id)
+        self.check_object_permissions(request, board)
+        board.delete()
+        return Response(status=204)
 
 
 class EmailCheckView(APIView):
