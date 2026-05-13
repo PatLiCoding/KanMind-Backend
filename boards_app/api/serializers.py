@@ -65,6 +65,12 @@ class BoardSerializer(serializers.ModelSerializer):
         return instance
 
 
+class UserMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'fullname']
+
+
 class BoardDetailSerializer(serializers.ModelSerializer):
     members = serializers.SerializerMethodField()
 
@@ -87,3 +93,29 @@ class BoardDetailSerializer(serializers.ModelSerializer):
             }
             for user in obj.members.all()
         ]
+
+
+class BoardMemberUpdateSerializer(serializers.ModelSerializer):
+    members = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=User.objects.all(),
+        write_only=True
+    )
+    members_data = UserMinimalSerializer(
+        source='members',
+        many=True,
+        read_only=True
+    )
+    owner_data = UserMinimalSerializer(source='owner', read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ['id', 'title', 'members', 'members_data', 'owner_data']
+
+    def update(self, instance, validated_data):
+        if 'title' in validated_data:
+            instance.title = validated_data['title']
+        if 'members' in validated_data:
+            instance.members.set(validated_data['members'])
+        instance.save()
+        return instance

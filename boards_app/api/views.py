@@ -1,11 +1,13 @@
 from rest_framework.response import Response
 from auth_app.models import User
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from boards_app.api.permissions import IsBoardOwnerOrMember
 from boards_app.models import Board
-from .serializers import BoardSerializer, BoardDetailSerializer
+from .serializers import BoardSerializer, BoardDetailSerializer, \
+    BoardMemberUpdateSerializer, UserMinimalSerializer
 
 
 class BoardsView(APIView):
@@ -31,11 +33,24 @@ class BoardsView(APIView):
 
 
 class BoardDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def get(self, request, board_id):
         board = get_object_or_404(Board, id=board_id)
+        self.check_object_permissions(request, board)
         serializer = BoardDetailSerializer(board)
+        return Response(serializer.data)
+
+    def patch(self, request, board_id):
+        board = get_object_or_404(Board, id=board_id)
+        self.check_object_permissions(request, board)
+        serializer = BoardMemberUpdateSerializer(
+            board,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data)
 
 
