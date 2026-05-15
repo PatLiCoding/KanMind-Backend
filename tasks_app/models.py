@@ -1,5 +1,6 @@
 from django.db import models
 from boards_app.models import Board
+from auth_app.models import User
 
 # Create your models here.
 
@@ -8,6 +9,7 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ('todo', 'To Do'),
         ('inprogress', 'In Progress'),
+        ('review', 'Review'),
         ('done', 'Done'),
     ]
 
@@ -25,3 +27,6 @@ class Task(models.Model):
         max_length=20, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(
         max_length=20, choices=PRIORITY_CHOICES, default='medium')
+    assignees = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
+    reviewers = models.ManyToManyField(User, related_name='reviewed_tasks', blank=True)
+    due_date = models.DateField(auto_now_add=True)

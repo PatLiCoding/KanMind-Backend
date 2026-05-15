@@ -1,6 +1,7 @@
 from auth_app.models import User
 from boards_app.models import Board
 from rest_framework import serializers
+from auth_app.api.serializers import UserMinimalSerializer
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -63,12 +64,6 @@ class BoardSerializer(serializers.ModelSerializer):
         if members is not None:
             instance.members.set(members)
         return instance
-
-
-class UserMinimalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'fullname']
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
