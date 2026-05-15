@@ -11,7 +11,7 @@ from tasks_app.api.serializers import TaskSerializer
 
 
 class TaskView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def get(self, request):
         tasks = Task.objects.filter(
@@ -20,3 +20,16 @@ class TaskView(APIView):
         ).distinct()
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = TaskSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )

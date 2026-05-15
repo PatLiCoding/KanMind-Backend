@@ -29,4 +29,17 @@ class Task(models.Model):
         max_length=20, choices=PRIORITY_CHOICES, default='medium')
     assignees = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     reviewers = models.ManyToManyField(User, related_name='reviewed_tasks', blank=True)
-    due_date = models.DateField(auto_now_add=True)
+    due_date = models.DateField()
+
+    def __str__(self):
+        return self.title
+
+
+class Comments(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+
+    def __str__(self):
+        return f"Comment by {self.author} on {self.task.title}"
