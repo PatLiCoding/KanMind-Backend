@@ -33,3 +33,25 @@ class TaskView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+    
+
+class AssignedView(APIView):
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
+
+    def get(self, request):
+        tasks = Task.objects.filter(
+            Q(assignees=request.user)
+        ).distinct()
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class ReviewersView(APIView):
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
+
+    def get(self, request):
+        tasks = Task.objects.filter(
+            Q(reviewers=request.user)
+        ).distinct()
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
