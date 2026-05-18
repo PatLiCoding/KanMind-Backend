@@ -22,7 +22,6 @@ class TaskSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
-    create_by = UserMinimalSerializer(write_only=True)
     comments = serializers.PrimaryKeyRelatedField(
         queryset=Comments.objects.all(),
         many=True,
@@ -38,7 +37,6 @@ class TaskSerializer(serializers.ModelSerializer):
             'status', 'priority', 'assignee_id', 
             'assignee', 'reviewer_id', 'reviewer',
             'due_date', 'comments', 'comments_count',
-            'create_by'
         ]
         
     def get_comments_count(self, obj):
@@ -71,6 +69,7 @@ class TaskSerializer(serializers.ModelSerializer):
             validated_data['create_by'] = request.user
         comments = validated_data.pop('comments', [])
         task = Task.objects.create(**validated_data)
+        task.create_by = request.user
         task.comments.set(comments)
         return task
     
