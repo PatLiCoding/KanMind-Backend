@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from boards_app.api.permissions import IsBoardOwnerOrMember
+from tasks_app.api.permissions import IsBoardOwnerOrMember, IsTaskCreatorOrBoardOwnerOrMember
 from tasks_app.models import Task
 from boards_app.models import Board
 from django.db.models import Q
@@ -34,6 +34,16 @@ class TaskView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+    
+
+class TaskDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsTaskCreatorOrBoardOwnerOrMember]
+
+    def get(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id)
+        self.check_object_permissions(request, task)
+        serializer = TaskSerializer(task)
+        return Response(serializer.data)
     
 
 class AssignedView(APIView):

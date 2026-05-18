@@ -6,8 +6,10 @@ from auth_app.api.serializers import UserMinimalSerializer
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    assignee_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    reviewer_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    assignee_id = serializers.IntegerField(
+        write_only=True, required=False, allow_null=True)
+    reviewer_id = serializers.IntegerField(
+        write_only=True, required=False, allow_null=True)
     create_by = UserMinimalSerializer(write_only=True)
     comments = serializers.PrimaryKeyRelatedField(
         queryset=Comments.objects.all(),
@@ -66,8 +68,10 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['assignees'] = UserMinimalSerializer(instance.assignees.all(), many=True).data
-        representation['reviewers'] = UserMinimalSerializer(instance.reviewers.all(), many=True).data
+        representation['assignees'] = UserMinimalSerializer(
+            instance.assignees.all(), many=True).data
+        representation['reviewers'] = UserMinimalSerializer(
+            instance.reviewers.all(), many=True).data
         representation.pop('assignee_id', None)
         representation.pop('reviewer_id', None)
         return representation
