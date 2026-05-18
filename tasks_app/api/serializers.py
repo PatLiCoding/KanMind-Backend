@@ -132,6 +132,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
     
 
 class CommentsSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
 
     class Meta:
         model = Comments
@@ -141,6 +142,9 @@ class CommentsSerializer(serializers.ModelSerializer):
             'author',
             'content',
         ]
+
+    def get_author(self, obj):
+        return obj.author.fullname
 
     def create(self, validated_data):
         return Comments.objects.create(**validated_data)
