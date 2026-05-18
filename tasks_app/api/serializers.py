@@ -8,6 +8,7 @@ from auth_app.api.serializers import UserMinimalSerializer
 class TaskSerializer(serializers.ModelSerializer):
     assignee_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     reviewer_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    create_by = UserMinimalSerializer(write_only=True)
     comments = serializers.PrimaryKeyRelatedField(
         queryset=Comments.objects.all(),
         many=True,
@@ -23,6 +24,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'status', 'priority', 'assignee_id', 
             'assignees', 'reviewer_id', 'reviewers',
             'due_date', 'comments', 'comments_count',
+            'create_by'
         ]
         
     def get_comments_count(self, obj):
@@ -50,6 +52,9 @@ class TaskSerializer(serializers.ModelSerializer):
         return self._validate_board_member(value, "reviewer")
     
     def create(self, validated_data):
+        request = self.context.get('request')
+        if request:
+            validated_data['create_by'] = request.user
         assignee = validated_data.pop('assignee_id', None)
         reviewer = validated_data.pop('reviewer_id', None)
         comments = validated_data.pop('comments', [])

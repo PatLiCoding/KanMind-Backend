@@ -27,9 +27,13 @@ class Task(models.Model):
         max_length=20, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(
         max_length=20, choices=PRIORITY_CHOICES, default='medium')
-    assignees = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
-    reviewers = models.ManyToManyField(User, related_name='reviewed_tasks', blank=True)
+    assignees = models.ManyToManyField(
+        User, related_name='assigned_tasks', blank=True)
+    reviewers = models.ManyToManyField(
+        User, related_name='reviewed_tasks', blank=True)
     due_date = models.DateField()
+    create_by = models.ForeignKey(User, related_name='created_tasks',
+        on_delete=models.SET_NULL,null=True)
 
     def __str__(self):
         return self.title
@@ -37,8 +41,10 @@ class Task(models.Model):
 
 class Comments(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True)
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField()
 
     def __str__(self):
