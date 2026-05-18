@@ -22,3 +22,12 @@ class IsTaskCreatorOrBoardOwnerOrMember(BasePermission):
                 obj.create_by == request.user or
                 obj.board.owner == request.user
             )
+        
+class IsBoardOwnerOrMemberInComments(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'GET':
+            return (
+                obj.board.owner == request.user or
+                obj.board.members.filter(id=request.user.id).exists()
+            )

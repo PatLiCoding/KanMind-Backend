@@ -129,3 +129,15 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
     def validate_reviewer_id(self, value):
         return self._validate_board_member(value, "reviewer")
+    
+
+class CommentsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comments
+        fields = [
+            'id',
+            'created_at',
+            'author',
+            'content',
+        ]

@@ -3,11 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from tasks_app.api.permissions import IsBoardOwnerOrMember, IsTaskCreatorOrBoardOwnerOrMember
+from tasks_app.api.permissions import IsBoardOwnerOrMember,\
+      IsTaskCreatorOrBoardOwnerOrMember, IsBoardOwnerOrMemberInComments
 from tasks_app.models import Task
 from boards_app.models import Board
 from django.db.models import Q
-from tasks_app.api.serializers import TaskSerializer, TaskDetailSerializer
+from tasks_app.api.serializers import TaskSerializer,\
+      TaskDetailSerializer, CommentsSerializer
 
 
 class TaskView(APIView):
@@ -80,4 +82,15 @@ class ReviewersView(APIView):
             Q(reviewers=request.user)
         ).distinct()
         serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class Comments(APIView):
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberInComments]
+
+    def get(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id)
+        self.check_object_permissions(request, task)
+        comments = task.comments.all()
+        serializer = CommentsSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
