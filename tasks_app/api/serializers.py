@@ -141,3 +141,6 @@ class CommentsSerializer(serializers.ModelSerializer):
             'author',
             'content',
         ]
+
+    def create(self, validated_data):
+        return Comments.objects.create(**validated_data)

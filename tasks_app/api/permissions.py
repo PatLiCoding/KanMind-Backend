@@ -12,7 +12,7 @@ class IsBoardOwnerOrMember(BasePermission):
 class IsTaskCreatorOrBoardOwnerOrMember(BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        if request.method == 'PATCH' or request.method == 'GET':
+        if request.method in ['PATCH', 'GET']:
             return (
                 obj.board.owner == request.user or
                 obj.board.members.filter(id=request.user.id).exists()
@@ -26,7 +26,7 @@ class IsTaskCreatorOrBoardOwnerOrMember(BasePermission):
 class IsBoardOwnerOrMemberInComments(BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        if request.method == 'GET':
+        if request.method in ['GET', 'POST']:
             return (
                 obj.board.owner == request.user or
                 obj.board.members.filter(id=request.user.id).exists()
