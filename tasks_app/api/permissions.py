@@ -42,5 +42,5 @@ class IsOwnerInComments(BasePermission):
                 obj.task.board.members.filter(id=request.user.id).exists()
             )
 
-        if request.method == 'DELETE':
+        elif request.method == 'DELETE':
             return obj.author == request.user

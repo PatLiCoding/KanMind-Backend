@@ -9,7 +9,8 @@ from tasks_app.api.permissions import IsBoardOwnerOrMember,\
 from tasks_app.models import Task, Comments
 from django.db.models import Q
 from tasks_app.api.serializers import TaskSerializer,\
-      TaskDetailSerializer, CommentsSerializer, CommentsDetailSerializer
+      TaskDetailSerializer, CommentsSerializer,\
+          CommentsDetailSerializer
 
 
 class TaskView(APIView):
@@ -39,7 +40,8 @@ class TaskView(APIView):
     
 
 class TaskDetailView(APIView):
-    permission_classes = [IsAuthenticated, IsTaskCreatorOrBoardOwnerOrMember]
+    permission_classes = [
+        IsAuthenticated, IsTaskCreatorOrBoardOwnerOrMember]
 
     def get(self, request, task_id):
         task = get_object_or_404(Task, id=task_id)
@@ -68,7 +70,7 @@ class AssignedView(APIView):
 
     def get(self, request):
         tasks = Task.objects.filter(
-            Q(assignees=request.user)
+            Q(assignee=request.user)
         ).distinct()
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -79,14 +81,15 @@ class ReviewersView(APIView):
 
     def get(self, request):
         tasks = Task.objects.filter(
-            Q(reviewers=request.user)
+            Q(reviewer=request.user)
         ).distinct()
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 class CommentsView(APIView):
-    permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberInComments]
+    permission_classes = [
+        IsAuthenticated, IsBoardOwnerOrMemberInComments]
 
     def get(self, request, task_id):
         task = get_object_or_404(Task, id=task_id)
@@ -107,8 +110,10 @@ class CommentsView(APIView):
                 author=request.user,
                 task_id=task_id
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 class CommentDetailView(APIView):
