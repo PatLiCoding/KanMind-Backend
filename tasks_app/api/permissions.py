@@ -25,9 +25,22 @@ class IsTaskCreatorOrBoardOwnerOrMember(BasePermission):
         
 class IsBoardOwnerOrMemberInComments(BasePermission):
 
+
     def has_object_permission(self, request, view, obj):
         if request.method in ['GET', 'POST']:
             return (
                 obj.board.owner == request.user or
                 obj.board.members.filter(id=request.user.id).exists()
             )
+        
+class IsOwnerInComments(BasePermission):
+    def has_object_permission(self, request, view, obj):
+
+        if request.method == 'GET':
+            return (
+                obj.task.board.owner == request.user or
+                obj.task.board.members.filter(id=request.user.id).exists()
+            )
+
+        if request.method == 'DELETE':
+            return obj.author == request.user

@@ -4,12 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from tasks_app.api.permissions import IsBoardOwnerOrMember,\
-      IsTaskCreatorOrBoardOwnerOrMember, IsBoardOwnerOrMemberInComments
-from tasks_app.models import Task
-from boards_app.models import Board
+      IsTaskCreatorOrBoardOwnerOrMember,\
+          IsBoardOwnerOrMemberInComments,IsOwnerInComments
+from tasks_app.models import Task, Comments
 from django.db.models import Q
 from tasks_app.api.serializers import TaskSerializer,\
-      TaskDetailSerializer, CommentsSerializer
+      TaskDetailSerializer, CommentsSerializer, CommentsDetailSerializer
 
 
 class TaskView(APIView):
@@ -85,7 +85,7 @@ class ReviewersView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-class Comments(APIView):
+class CommentsView(APIView):
     permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberInComments]
 
     def get(self, request, task_id):
@@ -109,3 +109,23 @@ class Comments(APIView):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class CommentDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerInComments]
+
+    def get(self, request, task_id, comment_id):
+        comment = get_object_or_404(
+            Comments, id=comment_id, task_id=task_id)
+        self.check_object_permissions(request, comment)
+        serializer = CommentsDetailSerializer(comment)
+        return Response(serializer.data)
+
+    def delete(self, request, task_id, comment_id):
+        comment = get_object_or_404(
+            Comments, id=comment_id, task_id=task_id)
+        self.check_object_permissions(request, comment)
+        comment.delete()
+        return Response(status=204)
+
+

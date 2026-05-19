@@ -148,3 +148,19 @@ class CommentsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Comments.objects.create(**validated_data)
+    
+
+class CommentsDetailSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comments
+        fields = [
+            'id',
+            'created_at',
+            'author',
+            'content',
+        ]
+
+    def get_author(self, obj):
+        return obj.author.fullname
