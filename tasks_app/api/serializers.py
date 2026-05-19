@@ -52,8 +52,7 @@ class TaskSerializer(serializers.ModelSerializer):
             if not (board_obj.owner == user or 
                     board_obj.members.filter(id=user.id).exists()):
                 raise serializers.ValidationError(
-                    f"The selected {
-                        field_name} is not a member of this board.")
+                    f"The selected {field_name} is not a member of this board.")
             return user
         except Board.DoesNotExist:
             raise serializers.ValidationError("Invalid board ID.")
@@ -132,7 +131,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         return self._validate_board_member(value, "reviewer")
     
 
-class CommentsSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
 
     class Meta:
@@ -149,20 +148,4 @@ class CommentsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Comments.objects.create(**validated_data)
-    
-
-class CommentsDetailSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Comments
-        fields = [
-            'id',
-            'created_at',
-            'author',
-            'content',
-        ]
-
-    def get_author(self, obj):
-        return obj.author.fullname
     

@@ -9,8 +9,7 @@ from tasks_app.api.permissions import IsBoardOwnerOrMember,\
 from tasks_app.models import Task, Comments
 from django.db.models import Q
 from tasks_app.api.serializers import TaskSerializer,\
-      TaskDetailSerializer, CommentsSerializer,\
-          CommentsDetailSerializer
+      TaskDetailSerializer, CommentSerializer
 
 
 class TaskView(APIView):
@@ -87,7 +86,7 @@ class ReviewersView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-class CommentsView(APIView):
+class CommentView(APIView):
     permission_classes = [
         IsAuthenticated, IsBoardOwnerOrMemberInComments]
 
@@ -95,13 +94,13 @@ class CommentsView(APIView):
         task = get_object_or_404(Task, id=task_id)
         self.check_object_permissions(request, task)
         comments = task.comments.all()
-        serializer = CommentsSerializer(comments, many=True)
+        serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, task_id):
         task = get_object_or_404(Task, id=task_id)
         self.check_object_permissions(request, task)
-        serializer = CommentsSerializer(
+        serializer = CommentSerializer(
             data=request.data,
             context={'request': request}
         )
@@ -123,7 +122,7 @@ class CommentDetailView(APIView):
         comment = get_object_or_404(
             Comments, id=comment_id, task_id=task_id)
         self.check_object_permissions(request, comment)
-        serializer = CommentsDetailSerializer(comment)
+        serializer = CommentSerializer(comment)
         return Response(serializer.data)
 
     def delete(self, request, task_id, comment_id):

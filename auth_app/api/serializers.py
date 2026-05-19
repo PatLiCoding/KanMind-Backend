@@ -25,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
         return token.key if token else None
 
     def validate(self, data):
-        if data['password'] != data['repeated_password']:
+        if data.get('password') != data.get('repeated_password'):
             raise serializers.ValidationError(
                 {"password": "Passwords do not match."})
         return data

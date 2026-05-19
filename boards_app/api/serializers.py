@@ -2,6 +2,7 @@ from auth_app.models import User
 from boards_app.models import Board
 from rest_framework import serializers
 from auth_app.api.serializers import UserMinimalSerializer
+from tasks_app.api.serializers import TaskSerializer
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -43,7 +44,7 @@ class BoardSerializer(serializers.ModelSerializer):
     def get_tasks_high_prio_count(self, obj):
         return obj.tasks.filter(priority='high').count()
 
-    def validate_member(self, value):
+    def validate_members(self, value):
         users = User.objects.filter(email__in=value)
         if len(users) != len(value):
             existing_emails = users.values_list('email', flat=True)
@@ -67,7 +68,8 @@ class BoardSerializer(serializers.ModelSerializer):
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
-    members = serializers.SerializerMethodField()
+    members = UserMinimalSerializer(many=True, read_only=True)
+    tasks = TaskSerializer(many=True, read_only=True)
 
     class Meta:
         model = Board
@@ -77,16 +79,6 @@ class BoardDetailSerializer(serializers.ModelSerializer):
             'owner_id',
             'members',
             'tasks'
-        ]
-
-    def get_members(self, obj):
-        return [
-            {
-                "id": user.id,
-                "email": user.email,
-                "fullname": user.fullname,
-            }
-            for user in obj.members.all()
         ]
 
 
@@ -109,7 +101,8 @@ class BoardMemberUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if 'title' in validated_data:
-            instance.title = validated_data['title']
+            instance.title = validated_data.get(
+                'title', instance.title)
         if 'members' in validated_data:
             instance.members.set(validated_data['members'])
         instance.save()
