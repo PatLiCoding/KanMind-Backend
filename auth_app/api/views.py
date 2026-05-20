@@ -22,7 +22,8 @@ class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
@@ -32,6 +33,5 @@ class LoginView(ObtainAuthToken):
                 'email': user.email,
                 'user_id': user.id
             }
-        else:
-            data = serializer.errors
-        return Response(data)
+            return Response(data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

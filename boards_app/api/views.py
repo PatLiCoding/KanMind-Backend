@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from auth_app.models import User
 from django.db.models import Q
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -11,57 +12,35 @@ from .serializers import BoardSerializer, BoardDetailSerializer, \
     BoardMemberUpdateSerializer
 
 
-class BoardsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        boards = Board.objects.filter(
-            Q(owner=request.user) |
-            Q(members=request.user)
-        ).distinct()
-        serializer = BoardSerializer(boards, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = BoardSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(owner=request.user)
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-
-class BoardDetailView(APIView):
+class BoardViewSet(ModelViewSet):
+    queryset = Board.objects.all()
+    serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
-    def get(self, request, board_id):
-        board = get_object_or_404(Board, id=board_id)
-        self.check_object_permissions(request, board)
-        serializer = BoardDetailSerializer(board)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Board.objects.filter(
+            Q(owner=self.request.user) |
+            Q(members=self.request.user)
+        ).distinct()
 
-    def patch(self, request, board_id):
-        board = get_object_or_404(Board, id=board_id)
-        self.check_object_permissions(request, board)
-        serializer = BoardMemberUpdateSerializer(
-            board, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return BoardDetailSerializer
+        if self.action in ['partial_update', 'update']:
+            return BoardMemberUpdateSerializer
+        return BoardSerializer
 
-    def delete(self, request, board_id):
-        board = get_object_or_404(Board, id=board_id)
-        self.check_object_permissions(request, board)
-        board.delete()
-        return Response(status=204)
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
 
 class EmailCheckView(APIView):
+    queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -73,4 +52,4 @@ class EmailCheckView(APIView):
             "id": user.id,
             "email": user.email,
             "fullname": user.fullname
-        })
+        }, status=status.HTTP_200_OK)

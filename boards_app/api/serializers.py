@@ -44,15 +44,6 @@ class BoardSerializer(serializers.ModelSerializer):
     def get_tasks_high_prio_count(self, obj):
         return obj.tasks.filter(priority='high').count()
 
-    def validate_members(self, value):
-        users = User.objects.filter(email__in=value)
-        if len(users) != len(value):
-            existing_emails = users.values_list('email', flat=True)
-            missing = set(value) - set(existing_emails)
-            raise serializers.ValidationError(
-                f"User with email '{list(missing)}' does not exist.")
-        return users
-
     def create(self, validated_data):
         members = validated_data.pop('members', [])
         board = Board.objects.create(**validated_data)
