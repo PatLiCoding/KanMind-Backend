@@ -20,10 +20,12 @@ class TaskViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Task.objects.filter(
-            Q(board__owner=self.request.user) |
-            Q(board__members=self.request.user)
-        ).distinct()
+        if self.action == 'list':
+            return Task.objects.filter(
+                Q(board__owner=self.request.user) |
+                Q(board__members=self.request.user)
+            ).distinct()
+        return Task.objects.all()
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'update', 'partial_update']:
@@ -34,7 +36,8 @@ class TaskViewSet(ModelViewSet):
         board = serializer.validated_data.get('board')
         if board:
             is_owner = board.owner == self.request.user
-            is_member = board.members.filter(id=self.request.user.id).exists()
+            is_member = board.members.filter(
+                id=self.request.user.id).exists()
             if not (is_owner or is_member):
                 raise PermissionDenied(
                     "You must be a member or owner of the board to create a task here."
@@ -42,8 +45,10 @@ class TaskViewSet(ModelViewSet):
         serializer.save(create_by=self.request.user)
 
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
-            return [IsAuthenticated(), IsTaskCreatorOrBoardOwnerOrMember()]
+        if self.action in ['update', 'partial_update',
+                           'destroy', 'retrieve']:
+            return [IsAuthenticated(),
+                    IsTaskCreatorOrBoardOwnerOrMember()]
         return [IsAuthenticated()]
 
 

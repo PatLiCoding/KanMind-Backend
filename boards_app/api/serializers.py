@@ -88,7 +88,13 @@ class BoardMemberUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ['id', 'title', 'members', 'members_data', 'owner_data']
+        fields = [
+            'id',
+            'title',
+            'members',
+            'members_data',
+            'owner_data'
+        ]
 
     def update(self, instance, validated_data):
         if 'title' in validated_data:

@@ -14,8 +14,10 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(ObtainAuthToken):
@@ -34,4 +36,5 @@ class LoginView(ObtainAuthToken):
                 'user_id': user.id
             }
             return Response(data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST)
