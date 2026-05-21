@@ -8,9 +8,30 @@ from rest_framework.authtoken.models import Token
 
 
 class RegisterView(APIView):
+    """
+    API endpoint that allows new users to register an account.
+
+    Permissions:
+        - AllowAny (Publicly accessible)
+
+    Methods:
+        - POST: Validates payload, creates user, generates a token,
+          returns the profile.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Handles POST requests for user registration.
+
+        Expected JSON Body:
+            {
+                "fullname": "John Doe",
+                "email": "john@example.com",
+                "password": "secure123",
+                "repeated_password": "secure123"
+            }
+        """
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -21,9 +42,28 @@ class RegisterView(APIView):
 
 
 class LoginView(ObtainAuthToken):
+    """
+    API endpoint for user authentication using token-based auth.
+
+    Permissions:
+        - AllowAny (Publicly accessible)
+
+    Methods:
+        - POST: Validates credentials, fetches/creates a permanent token,
+                and returns basic user details alongside the token.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Handles POST requests for user login.
+
+        Expected JSON Body:
+            {
+                "username": "john@example.com",  # Uses email as username
+                "password": "secure123"
+            }
+        """
         serializer = self.serializer_class(
             data=request.data, context={'request': request})
         if serializer.is_valid():

@@ -1,3 +1,34 @@
+"""
+URL routing configuration for tasks and nested comments management.
+
+Manages task tracking queues and builds nested structural routes to isolate
+comment threads within their respective parent tasks.
+
+Endpoints:
+    - GET  /tasks/
+    : Lists accessible tasks filtered by workspace membership.
+    - POST /tasks/
+    : Creates a task bound to a cleared board.
+    - GET  /tasks/assigned-to-me/
+    : Lists tasks where the user is assigned.
+    - GET  /tasks/reviewing/
+    : Lists tasks where the user is a designated reviewer.
+    - GET  /tasks/<id>/
+    : Fetches full metrics of a single tasks
+    - PATCH /tasks/<id>/
+    : Partially modifies task state, assignees, or priority.
+    - DELETE /tasks/<id>/
+    : Drops a task (restricted to creator or board owner).
+    - GET  /tasks/<id>/comments/
+    : Fetches all comments posted on this task.
+    - POST /tasks/<id>/comments/
+    : Adds a new comment text thread under this task.
+    - GET  /tasks/<id>/comments/<comment_id>/
+    : Details a specific comment instance.
+    - DELETE /tasks/<id>/comments/<comment_id>/
+    : Deletes a specific comment (restricted to comment author).
+"""
+
 from django.urls import path
 from .views import TaskViewSet, CommentViewSet, \
     AssignedView, ReviewersView

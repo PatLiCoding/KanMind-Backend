@@ -6,6 +6,12 @@ from .models import User
 
 
 class UserAdmin(UserAdmin):
+    """
+    Custom admin configuration for the User model.
+
+    Extends the built-in Django UserAdmin to display and manage
+    the custom 'fullname' field inside the Django Admin panel.
+    """
     list_display = ('email', 'fullname', 'is_staff')
     fieldsets = UserAdmin.fieldsets + (
         (None, {'fields': ('fullname',)}),

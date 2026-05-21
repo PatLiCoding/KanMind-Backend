@@ -15,11 +15,26 @@ from tasks_app.api.serializers import TaskSerializer, \
 
 
 class TaskViewSet(ModelViewSet):
+    """
+    ViewSet for automated CRUD operations on Task instances.
+
+    Enforces user authentication and applies object-level access rules via
+    IsTaskCreatorOrBoardOwnerOrMember during safe or destructive mutations.
+    """
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Dynamically filters available tasks for the 'list' action to only
+        show items
+        from boards where the active user is either an owner or
+        an approved member.
+
+        Returns:
+            QuerySet: Deduplicated task records available to the user.
+        """
         if self.action == 'list':
             return Task.objects.filter(
                 Q(board__owner=self.request.user) |
@@ -28,11 +43,27 @@ class TaskViewSet(ModelViewSet):
         return Task.objects.all()
 
     def get_serializer_class(self):
+        """
+        Determines the appropriate serializer mapping based on the current
+        action lifecycle.
+
+        Returns:
+            Serializer: TaskDetailSerializer for focused instance lookups and
+            updates, otherwise falls back to TaskSerializer.
+        """
         if self.action in ['retrieve', 'update', 'partial_update']:
             return TaskDetailSerializer
         return TaskSerializer
 
     def perform_create(self, serializer):
+        """
+        Validates target workspace ownership/membership permissions prior to
+        persistence, and stamps the request user as the permanent creator of
+        the task.
+
+        Raises:
+            PermissionDenied: If the request user lacks proper board clearance.
+        """
         board = serializer.validated_data.get('board')
         if board:
             is_owner = board.owner == self.request.user
@@ -40,11 +71,20 @@ class TaskViewSet(ModelViewSet):
                 id=self.request.user.id).exists()
             if not (is_owner or is_member):
                 raise PermissionDenied(
-                    "You must be a member or owner of the board to create a task here."
+                    "You must be a member or owner of the board to create a"
+                    "task here."
                 )
         serializer.save(create_by=self.request.user)
 
     def get_permissions(self):
+        """
+        Applies object-level verification guardrails exclusively for mutating
+        or safe single-lookup steps.
+
+        Returns:
+            list: Instantiated permission objects matching
+            operational workflows.
+        """
         if self.action in ['update', 'partial_update',
                            'destroy', 'retrieve']:
             return [IsAuthenticated(),
@@ -53,12 +93,26 @@ class TaskViewSet(ModelViewSet):
 
 
 class CommentViewSet(ModelViewSet):
+    """
+    ViewSet for nested comment threads tied directly to individual tasks.
+
+    Manages lookups and mutations under strict parent board
+    visibility contexts.
+    """
     queryset = Comments.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
     lookup_url_kwarg = "comment_pk"
 
     def get_queryset(self):
+        """
+        Nests queries to fetch comments for a specific task key while asserting
+        parent workspace access privileges.
+
+        Returns:
+            QuerySet: Filtered comment records matching target
+            routing requirements.
+        """
         task_pk = self.kwargs.get("pk")
         return Comments.objects.filter(
             Q(task__board__owner=self.request.user) |
@@ -67,6 +121,15 @@ class CommentViewSet(ModelViewSet):
         ).distinct()
 
     def perform_create(self, serializer):
+        """
+        Appends a new comment to the routed target task after checking
+        permission status, automatically binding active session parameters
+        to authorship fields.
+
+        Raises:
+            PermissionDenied: If the user does not have access to the
+            underlying task's board.
+        """
         task_id = self.kwargs.get("pk")
         task = get_object_or_404(Task, id=task_id)
         is_owner = task.board.owner == self.request.user
@@ -77,6 +140,10 @@ class CommentViewSet(ModelViewSet):
         serializer.save(author=self.request.user, task_id=task_id)
 
     def get_permissions(self):
+        """
+        Determines the structural access list needed during lifecycle
+        operations on comments.
+        """
         if self.action in ['create', 'retrieve', 'destroy']:
             return [
                 IsAuthenticated(),
@@ -85,11 +152,20 @@ class CommentViewSet(ModelViewSet):
 
 
 class AssignedView(APIView):
+    """
+    API endpoint listing tasks explicitly assigned to the requesting user.
+
+    Filters across all accessible workspaces to compile an active task queue.
+    """
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Processes GET requests to pull task rows where the active user is
+        marked as assignee.
+        """
         tasks = Task.objects.filter(
             Q(board__owner=request.user) | Q(board__members=request.user),
             assignee=request.user
@@ -99,11 +175,21 @@ class AssignedView(APIView):
 
 
 class ReviewersView(APIView):
+    """
+    API endpoint listing tasks where the requesting user is designated as the
+    reviewer.
+
+    Provides visibility over task columns requiring verification signatures.
+    """
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Processes GET requests to pull task rows where the active user is
+        marked as reviewer.
+        """
         tasks = Task.objects.filter(
             Q(board__owner=request.user) | Q(board__members=request.user),
             reviewer=request.user

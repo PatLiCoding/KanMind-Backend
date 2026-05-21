@@ -1,3 +1,24 @@
+"""
+URL routing configuration for project boards and helper utilities.
+
+Maps RESTful operations to the BoardViewSet and binds the EmailCheckView
+lookup utility.
+
+Endpoints:
+    - GET  /boards/           : Lists all boards where the user is an owner
+                                or member.
+    - POST /boards/           : Creates a new board (assigns request user as
+                                owner).
+    - GET  /boards/<id>/      : Retrieves detailed data of a single board
+                                including tasks.
+    - PATCH /boards/<id>/     : Partially updates board details or members
+                                list.
+    - DELETE /boards/<id>/    : Destroys a board instance (restricted
+                                to owners).
+    - GET  /email-check/      : Looks up user ID and fullname by providing an
+                                ?email= query param.
+"""
+
 from django.urls import path
 from .views import BoardViewSet, EmailCheckView
 

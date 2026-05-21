@@ -7,6 +7,12 @@ from auth_app.api.serializers import UserMinimalSerializer
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    """
+    Standard serializer for managing tasks.
+
+    Validates that assignees and reviewers belong to the selected board,
+    calculates dynamic comments metrics, and tracks who created the task.
+    """
     assignee = UserMinimalSerializer(read_only=True)
     reviewer = UserMinimalSerializer(read_only=True)
     assignee_id = serializers.PrimaryKeyRelatedField(
@@ -41,9 +47,14 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
     def get_comments_count(self, obj):
+        """Computes total count of child comments attached to this task."""
         return obj.comments.count()
 
     def _validate_board_member(self, user, field_name):
+        """
+        Internal helper to assert that a target user is either the owner
+        or an active group member of the assigned parent board.
+        """
         if not user:
             return None
         board_id = self.initial_data.get('board') or (
@@ -57,12 +68,16 @@ class TaskSerializer(serializers.ModelSerializer):
         return user
 
     def validate_assignee_id(self, value):
+        """Validates that the task assignee is an authorized board member."""
         return self._validate_board_member(value, "assignee")
 
     def validate_reviewer_id(self, value):
+        """Validates that the task reviewer is an authorized board member."""
         return self._validate_board_member(value, "reviewer")
 
     def create(self, validated_data):
+        """Creates a Task instance, automatically binding the active
+        request user as creator."""
         request = self.context.get('request')
         if request:
             validated_data['create_by'] = request.user
@@ -74,6 +89,12 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TaskDetailSerializer(serializers.ModelSerializer):
+    """
+    Detailed read-only serializer for individual Task inspection.
+
+    Optimized for view configurations that require nested structural
+    user objects instead of shallow entity IDs.
+    """
     assignee = UserMinimalSerializer(read_only=True)
     reviewer = UserMinimalSerializer(read_only=True)
     assignee_id = serializers.PrimaryKeyRelatedField(
@@ -107,6 +128,9 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         ]
 
     def _validate_board_member(self, user, field_name):
+        """
+        Internal validation helper mirroring root TaskSerializer layout rules.
+        """
         if not user:
             return user
         board_id = self.initial_data.get('board') or (
@@ -120,13 +144,21 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         return user
 
     def validate_assignee_id(self, value):
+        """Asserts validity of assigned member during updates."""
         return self._validate_board_member(value, "assignee")
 
     def validate_reviewer_id(self, value):
+        """Asserts validity of reviewer member during updates."""
         return self._validate_board_member(value, "reviewer")
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """
+    Serializer to unpack and manage comment threads tied to tasks.
+
+    Dynamically tracks comment authorship and returns string mappings for
+    client consumption.
+    """
     author = serializers.SerializerMethodField()
 
     class Meta:
@@ -139,7 +171,11 @@ class CommentSerializer(serializers.ModelSerializer):
         ]
 
     def get_author(self, obj):
+        """Extracts the display name of the comment author."""
         return obj.author.fullname
 
     def create(self, validated_data):
+        """
+        Persists a new comment instance using standard validated parameters.
+        """
         return Comments.objects.create(**validated_data)
