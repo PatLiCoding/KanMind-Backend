@@ -72,15 +72,28 @@ class BoardSerializer(serializers.ModelSerializer):
         return instance
 
 
+class TaskWithoutBoardSerializer(TaskSerializer):
+    """
+    Specific read-only serializer for tasks within the board detail view.
+
+    Inherits all fields and logic from TaskSerializer but excludes the 'board'
+    field to avoid redundant data since the parent board context is already
+    known.
+    """
+    class Meta(TaskSerializer.Meta):
+        fields = [
+            field for field in TaskSerializer.Meta.fields if field != 'board']
+
+
 class BoardDetailSerializer(serializers.ModelSerializer):
     """
     Detailed read-only serializer for a single Board instance.
 
     Expands relational IDs into full objects, nesting detailed member
-    profiles and all child task objects.
+    profiles and all child task objects (with the 'board' relation omitted).
     """
     members = UserMinimalSerializer(many=True, read_only=True)
-    tasks = TaskSerializer(many=True, read_only=True)
+    tasks = TaskWithoutBoardSerializer(many=True, read_only=True)
 
     class Meta:
         model = Board
