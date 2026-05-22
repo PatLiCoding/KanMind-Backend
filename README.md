@@ -174,6 +174,15 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Environment Variables
+For security reasons, the Django `SECRET_KEY` has been moved to a `.env` file.
+Before starting the project, create a `.env` file in the root directory and use the provided `.env.template` file as a template.
+
+Example:
+```env
+SECRET_KEY=your_secret_django_key
+```
+
 <hr>
 
 ## API Authentication

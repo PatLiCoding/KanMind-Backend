@@ -1,4 +1,4 @@
-from .serializers import UserSerializer
+from .serializers import UserSerializer, LoginSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -53,6 +53,7 @@ class LoginView(ObtainAuthToken):
                 and returns basic user details alongside the token.
     """
     permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
 
     def post(self, request):
         """
@@ -60,7 +61,7 @@ class LoginView(ObtainAuthToken):
 
         Expected JSON Body:
             {
-                "username": "john@example.com",  # Uses email as username
+                "email": "john@example.com",
                 "password": "secure123"
             }
         """
