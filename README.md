@@ -70,17 +70,21 @@ python manage.py migrate
 ```
 
 ## Environment Variables
-For security reasons, the Django `SECRET_KEY` has been moved to a `.env` file.
-Before starting the project, create a `.env` file in the root directory and use the provided `.env.template` file as a template.
+
+For security reasons, the Django `SECRET_KEY` is managed via environment variables. Before starting the server, you need to set up your local `.env` file.
+
+#### 1. Create the `.env` file
+Copy the provided template file to create your local configuration:
+```shell
+cp .env.template .env
+```
+
+#### 2. Configure the variables
+Open the newly created .env file in the root directory and add your personal configuration.
 
 Example:
 ```env
 SECRET_KEY=your_secret_django_key
-```
-
-Or:
-```Shell
-cp .env.template .env
 ```
 
 ### Start development server
@@ -100,9 +104,12 @@ python manage.py runserver
 <hr>
 
 ## Project Structure
-`auth_app/`
-`boards_app/`
-`tasks_app/`
+```
+├── auth_app/       # User management & authentication
+├── boards_app/     # Board & project spaces
+└── tasks_app/      # Tasks, workflows & comments
+```
+
 
 
 <hr>
