@@ -22,7 +22,6 @@ class BoardViewSet(ModelViewSet):
     """
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
-    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def get_queryset(self):
         """
@@ -32,10 +31,12 @@ class BoardViewSet(ModelViewSet):
         Returns:
             QuerySet: A deduplicated queryset of accessible Board instances.
         """
-        return Board.objects.filter(
-            Q(owner=self.request.user) |
-            Q(members=self.request.user)
-        ).distinct()
+        if self.action == 'list':
+            return Board.objects.filter(
+                Q(owner=self.request.user) |
+                Q(members=self.request.user)
+            ).distinct()
+        return Board.objects.all()
 
     def get_serializer_class(self):
         """
@@ -75,7 +76,7 @@ class BoardViewSet(ModelViewSet):
         """
         if self.action == 'create':
             return [IsAuthenticated()]
-        return [IsAuthenticated(), IsBoardOwnerOrMember()]
+        return [IsBoardOwnerOrMember()]
 
 
 class EmailCheckView(APIView):
