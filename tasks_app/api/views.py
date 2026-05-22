@@ -85,11 +85,7 @@ class TaskViewSet(ModelViewSet):
             list: Instantiated permission objects matching
             operational workflows.
         """
-        if self.action in ['update', 'partial_update',
-                           'destroy', 'retrieve']:
-            return [IsAuthenticated(),
-                    IsTaskCreatorOrBoardOwnerOrMember()]
-        return [IsAuthenticated()]
+        return [IsAuthenticated(), IsTaskCreatorOrBoardOwnerOrMember()]
 
 
 class CommentViewSet(ModelViewSet):
@@ -101,34 +97,46 @@ class CommentViewSet(ModelViewSet):
     """
     queryset = Comments.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCommentOwnerOrBoardOwnerOrBoardMember()]
     lookup_url_kwarg = "comment_pk"
 
     def get_queryset(self):
         """
-        Nests queries to fetch comments for a specific task key while asserting
-        parent workspace access privileges.
+        Fetches comments for a specific task after asserting parent board
+        access.
+
+        Validates that the requesting user is either the owner or a member of
+        the underlying board. This prevents unprivileged users from receiving
+        anempty array ([]) on list actions, forcing a 403 Forbidden instead.
 
         Returns:
-            QuerySet: Filtered comment records matching target
-            routing requirements.
+            QuerySet: Comment records matching the target task routing
+            requirements.
+
+        Raises:
+            PermissionDenied: If the user lacks access to the parent board.
         """
         task_pk = self.kwargs.get("pk")
-        return Comments.objects.filter(
-            Q(task__board__owner=self.request.user) |
-            Q(task__board__members=self.request.user),
-            task_id=task_pk
-        ).distinct()
+        task = get_object_or_404(Task, id=task_pk)
+        is_owner = task.board.owner == self.request.user
+        is_member = task.board.members.filter(id=self.request.user.id).exists()
+        if not (is_owner or is_member):
+            raise PermissionDenied(
+                "You do not have permission to view comments for this task.")
+        return Comments.objects.filter(task_id=task_pk)
 
     def perform_create(self, serializer):
         """
-        Appends a new comment to the routed target task after checking
-        permission status, automatically binding active session parameters
-        to authorship fields.
+        Determines the structural access list needed during lifecycle
+        operations.
 
-        Raises:
-            PermissionDenied: If the user does not have access to the
-            underlying task's board.
+        Bypasses object-level checks during 'create' since the comment instance
+        does not exist yet (handled explicitly in perform_create). Enforces
+        both authentication and strict object ownership/membership for all
+        other actions (list, retrieve, update, destroy).
+
+        Returns:
+            list: Instantiated permission objects.
         """
         task_id = self.kwargs.get("pk")
         task = get_object_or_404(Task, id=task_id)
@@ -144,11 +152,9 @@ class CommentViewSet(ModelViewSet):
         Determines the structural access list needed during lifecycle
         operations on comments.
         """
-        if self.action in ['create', 'retrieve', 'destroy']:
-            return [
-                IsAuthenticated(),
-                IsCommentOwnerOrBoardOwnerOrBoardMember()]
-        return [IsAuthenticated()]
+        if self.action == 'create':
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsCommentOwnerOrBoardOwnerOrBoardMember()]
 
 
 class AssignedView(APIView):
