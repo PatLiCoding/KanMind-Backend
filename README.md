@@ -5,6 +5,27 @@ The frontend is provided by the course — this backend is responsible for handl
 
 <hr>
 
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Installation & Setup](#installation--setup)
+- [Environment Variables](#environment-variables)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [User System](#user-system)
+- [Boards](#boards)
+- [Tasks](#tasks)
+- [Comments](#comments)
+- [Authentication & Permissions](#authentication--permissions)
+- [API Features](#api-features)
+- [Serializer Design](#serializer-design)
+- [Key Features & Highlights](#key-features--highlights)
+- [API Authentication](#api-authentication)
+- [Example API Endpoints](#example-api-endpoints)
+- [Project Goal](#project-goal)
+- [Author](#author)
+
+<hr>
+
 ## Project Overview
 KanMind provides a structured backend system for managing projects, tasks, and team collaboration.
 
@@ -169,11 +190,6 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-### Start development server
-```
-python manage.py runserver
-```
-
 ## Environment Variables
 For security reasons, the Django `SECRET_KEY` has been moved to a `.env` file.
 Before starting the project, create a `.env` file in the root directory and use the provided `.env.template` file as a template.
@@ -181,6 +197,16 @@ Before starting the project, create a `.env` file in the root directory and use 
 Example:
 ```env
 SECRET_KEY=your_secret_django_key
+```
+
+Or:
+```Shell
+cp .env.template .env
+```
+
+### Start development server
+```
+python manage.py runserver
 ```
 
 <hr>
