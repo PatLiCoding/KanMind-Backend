@@ -41,6 +41,55 @@ The goal is to build a clean, scalable API that integrates seamlessly with a fro
 
 <hr>
 
+## Installation & Setup
+
+### Clone repository
+```
+git clone <repo-url>
+```
+
+### Create virtual environment
+```
+python -m venv venv
+```
+```
+source venv/bin/activate  # Linux/Mac
+```
+```
+venv\Scripts\activate     # Windows
+```
+
+### Install dependencies
+```
+pip install -r requirements.txt
+```
+
+### Run migrations
+```
+python manage.py migrate
+```
+
+## Environment Variables
+For security reasons, the Django `SECRET_KEY` has been moved to a `.env` file.
+Before starting the project, create a `.env` file in the root directory and use the provided `.env.template` file as a template.
+
+Example:
+```env
+SECRET_KEY=your_secret_django_key
+```
+
+Or:
+```Shell
+cp .env.template .env
+```
+
+### Start development server
+```
+python manage.py runserver
+```
+
+<hr>
+
 ## Tech Stack
 - Python
 - Django
@@ -159,55 +208,6 @@ The project follows a consistent serializer strategy:
 - Token authentication automatically generated on user creation
 - Efficient use of Django related names for reverse queries
 - Nested serialization for user-friendly API responses
-
-<hr>
-
-## Installation & Setup
-
-### Clone repository
-```
-git clone <repo-url>
-```
-
-### Create virtual environment
-```
-python -m venv venv
-```
-```
-source venv/bin/activate  # Linux/Mac
-```
-```
-venv\Scripts\activate     # Windows
-```
-
-### Install dependencies
-```
-pip install -r requirements.txt
-```
-
-### Run migrations
-```
-python manage.py migrate
-```
-
-## Environment Variables
-For security reasons, the Django `SECRET_KEY` has been moved to a `.env` file.
-Before starting the project, create a `.env` file in the root directory and use the provided `.env.template` file as a template.
-
-Example:
-```env
-SECRET_KEY=your_secret_django_key
-```
-
-Or:
-```Shell
-cp .env.template .env
-```
-
-### Start development server
-```
-python manage.py runserver
-```
 
 <hr>
 
