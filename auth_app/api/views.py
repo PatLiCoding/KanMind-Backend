@@ -34,11 +34,18 @@ class RegisterView(APIView):
         """
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            token, created = Token.objects.get_or_create(user=user)
             return Response(
-                serializer.data, status=status.HTTP_201_CREATED)
-        return Response(
-            serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                {
+                    'token': token.key,
+                    'fullname': user.fullname,
+                    'email': user.email,
+                    'user_id': user.id
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(ObtainAuthToken):
@@ -70,12 +77,11 @@ class LoginView(ObtainAuthToken):
         if serializer.is_valid():
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
-            data = {
+            return Response({
                 'token': token.key,
                 'fullname': user.fullname,
                 'email': user.email,
                 'user_id': user.id
-            }
-            return Response(data, status=status.HTTP_200_OK)
+            }, status=status.HTTP_200_OK)
         return Response(
             serializer.errors, status=status.HTTP_400_BAD_REQUEST)
