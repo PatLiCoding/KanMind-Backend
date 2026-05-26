@@ -76,7 +76,7 @@ class BoardViewSet(ModelViewSet):
         """
         if self.action == 'create':
             return [IsAuthenticated()]
-        return [IsBoardOwnerOrMember()]
+        return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
 
 class EmailCheckView(APIView):

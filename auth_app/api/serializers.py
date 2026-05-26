@@ -79,7 +79,6 @@ class UserSerializer(serializers.ModelSerializer):
         """
         validated_data.pop('repeated_password')
         user = User.objects.create_user(
-            username=validated_data['email'],
             fullname=validated_data['fullname'],
             email=validated_data['email'],
             password=validated_data['password']
