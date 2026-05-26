@@ -99,6 +99,21 @@ class LoginSerializer(serializers.Serializer):
         write_only=True, style={'input_type': 'password'})
 
     def validate(self, attrs):
+        """
+        Validates the incoming login data by authenticating the user.
+
+        Args:
+            attrs (dict): A dictionary of field values passed to the
+            serializer.
+
+        Raises:
+            serializers.ValidationError: If both email and password are not
+            provided,or if authentication fails due to invalid credentials.
+
+        Returns:
+            dict: The validated attributes, including the authenticated
+            'user' object.
+        """
         email = attrs.get('email')
         password = attrs.get('password')
 

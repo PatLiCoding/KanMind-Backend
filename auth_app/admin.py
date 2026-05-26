@@ -17,6 +17,16 @@ class CustomUserCreationForm(forms.ModelForm):
         fields = ('email', 'fullname')
 
     def save(self, commit=True):
+        """
+        Saves the user instance after hashing the provided password.
+
+        Args:
+            commit (bool, optional): If True, saves the object to the database.
+                                     Defaults to True.
+
+        Returns:
+            User: The saved or updated user model instance.
+        """
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
         if commit:

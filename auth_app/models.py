@@ -8,6 +8,23 @@ class CustomUserManager(BaseUserManager):
     """
 
     def create_user(self, email, fullname, password=None, **extra_fields):
+        """
+        Creates and saves a regular user with the given email, full name,
+        and password.
+
+        Args:
+            email (str): The unique email address for the user.
+            fullname (str): The full name of the user.
+            password (str, optional): The password for the user. Defaults
+            to None.
+            **extra_fields: Additional fields to be saved on the user model.
+
+        Raises:
+            ValueError: If the email address is not provided.
+
+        Returns:
+            User: The newly created user instance.
+        """
         if not email:
             raise ValueError('An email address is mandatory.')
         email = self.normalize_email(email)
@@ -18,6 +35,23 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, fullname, password=None, **extra_fields):
+        """
+        Creates and saves a superuser with the given email, full name, and
+        password.
+
+        Args:
+            email (str): The unique email address for the superuser.
+            fullname (str): The full name of the superuser.
+            password (str, optional): The password for the superuser. Defaults
+            to None.
+            **extra_fields: Additional fields to be saved on the user model.
+
+        Raises:
+            ValueError: If 'is_staff' or 'is_superuser' are not set to True.
+
+        Returns:
+            User: The newly created superuser instance.
+        """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         if extra_fields.get('is_staff') is not True:
